@@ -24,8 +24,8 @@ from scipy.stats import ttest_1samp, pearsonr, linregress
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE      = os.path.dirname(os.path.abspath(__file__))
-P6_RES    = os.path.join(BASE, "..", "neural_network_similarity",
-                          "Experiments", "p6", "geometry_paper", "results")
+# P6 results: symlinked into results/ alongside the curvature_alignment dir
+P6_RES    = os.path.join(BASE, "results")
 ALN_RES   = os.path.join(BASE, "results", "geometry_paper_curvature_alignment")
 FDIR      = os.path.join(BASE, "figures", "appendix")
 
