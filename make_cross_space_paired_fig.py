@@ -14,7 +14,7 @@ Two-panel figure:
              while curvature rises and plateaus at longer ones.
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 make_cross_space_paired_fig.py
 """
 

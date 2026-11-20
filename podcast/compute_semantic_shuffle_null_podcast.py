@@ -1,6 +1,6 @@
 import sys, os
-sys.path.insert(0, "/scratch/aniluchavez/semantic-curvature")
-sys.path.insert(0, "/scratch/aniluchavez/semantic-curvature/podcast")
+sys.path.insert(0, "/scratch/aniluchavez/straighteningthenarrative")
+sys.path.insert(0, "/scratch/aniluchavez/straighteningthenarrative/podcast")
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler

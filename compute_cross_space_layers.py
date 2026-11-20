@@ -22,7 +22,7 @@ Each file is a list of per-patient dicts with keys:
   p_curv_layers_ch / p_disp_layers_ch / p_pos_layers_ch
 
 Run (all models, overwriting existing files):
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 compute_cross_space_layers.py
 
 Run (single model):

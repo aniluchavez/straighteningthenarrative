@@ -14,7 +14,7 @@ Each panel = one geometric quantity; mean ± SE across patients.
 Saves: figures/fig_cross_space_layer_profiles.{pdf,png,svg}
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 make_cross_space_layer_fig.py
 """
 

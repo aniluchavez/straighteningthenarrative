@@ -1,6 +1,6 @@
 import sys, os
-sys.path.insert(0, "/scratch/aniluchavez/semantic-curvature")
-sys.path.insert(0, "/scratch/aniluchavez/semantic-curvature/podcast")
+sys.path.insert(0, "/scratch/aniluchavez/straighteningthenarrative")
+sys.path.insert(0, "/scratch/aniluchavez/straighteningthenarrative/podcast")
 import numpy as np
 import h5py, scipy.sparse
 from run_geometry_analysis import trajectory_curvature, build_valid_mask, fit_neural_pca

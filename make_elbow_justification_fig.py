@@ -17,7 +17,7 @@ Figure layout:
 The optimal elbow chunk size and its stats are printed and annotated.
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 make_elbow_justification_fig.py
 """
 

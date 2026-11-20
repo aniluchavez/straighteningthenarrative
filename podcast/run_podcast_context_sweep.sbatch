@@ -4,11 +4,11 @@
 #SBATCH --gres=gpu:l40:1
 #SBATCH --cpus-per-task=8
 #SBATCH --time=12:00:00
-#SBATCH --output=/scratch/aniluchavez/semantic-curvature/podcast/logs/podcast_ctxsweep.out
-#SBATCH --error=/scratch/aniluchavez/semantic-curvature/podcast/logs/podcast_ctxsweep.err
+#SBATCH --output=/scratch/aniluchavez/straighteningthenarrative/podcast/logs/podcast_ctxsweep.out
+#SBATCH --error=/scratch/aniluchavez/straighteningthenarrative/podcast/logs/podcast_ctxsweep.err
 
 PY=/scratch/aniluchavez/miniforge3/envs/gpt2_embed/bin/python3
-cd /scratch/aniluchavez/semantic-curvature/podcast
+cd /scratch/aniluchavez/straighteningthenarrative/podcast
 mkdir -p logs EmbedCache
 
 for CTX in 100 50 10 3; do

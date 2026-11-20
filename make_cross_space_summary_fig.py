@@ -12,7 +12,7 @@ Rows = models, Columns = Displacement / Curvature / Position
 Cell colour = mean r across layers and patients; annotated with value.
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 make_cross_space_summary_fig.py
 """
 

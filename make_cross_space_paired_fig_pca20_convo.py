@@ -19,7 +19,7 @@ Panel B — chunk-size sweep for curvature, displacement, and position (no
           chance" evidence instead).
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 make_cross_space_paired_fig_pca20_convo.py
 """
 

@@ -14,7 +14,7 @@ per-patient Pearson r for each quantity.
 Saves: results/cross_space_scatter_llama-3.1-8b_hippocampus.json
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 compute_cross_space_scatter.py
 """
 

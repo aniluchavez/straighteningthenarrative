@@ -15,7 +15,7 @@ Layout (portrait):
           quantity, with significance stars.
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 make_cross_space_fig.py
 """
 

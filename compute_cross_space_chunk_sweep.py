@@ -14,7 +14,7 @@ Structure:
   { chunk_size: { model: { metric: [r_per_patient] } } }
 
 Run:
-    cd /scratch/aniluchavez/semantic-curvature
+    cd /scratch/aniluchavez/straighteningthenarrative
     conda run -n gpt2_embed python3 compute_cross_space_chunk_sweep.py
 """
 
