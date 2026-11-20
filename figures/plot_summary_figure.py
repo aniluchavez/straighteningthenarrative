@@ -92,17 +92,24 @@ def add_sig_bracket(ax, xs, ys, p, color, offset=0.012):
 # ─────────────────────────────────────────────────────────────────────────────
 # Panels A & B: cross-space decoding, lag 0 and lag+1
 # ─────────────────────────────────────────────────────────────────────────────
-def per_patient_curvature_bins(pt, direction):
+def per_patient_curvature_bins(pt, direction, square=False):
+    """Per-patient mean target_corr (or target_corr**2 if square=True) by curvature quintile.
+
+    target_corr is squared per-word *before* averaging within each bin, not
+    averaged-then-squared — mean(r**2) per quintile is the meaningful
+    "pattern variance explained" statistic, not (mean r)**2.
+    """
     sub = pt[(pt["region"] == REGION) & pt["valid"] & (pt["direction"] == direction)]
     rows = []
     for _, g in sub.groupby("pid"):
         g = g.dropna(subset=["joint_curvature", "target_corr"]).copy()
         if len(g) < N_BINS * 4:
             continue
+        metric = g["target_corr"] ** 2 if square else g["target_corr"]
         try:
             g["_bin"] = pd.qcut(g["joint_curvature"], q=N_BINS,
                                  labels=False, duplicates="drop")
-            b = g.groupby("_bin")["target_corr"].mean().reindex(range(N_BINS))
+            b = metric.groupby(g["_bin"]).mean().reindex(range(N_BINS))
             if b.isna().sum() <= 1:
                 rows.append(b.fillna(b.mean()).values)
         except Exception:
@@ -247,14 +254,43 @@ def draw_layer_sweep(ax):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-def draw_cross_single(ax, lag, direction, panel_label):
-    """Cross-space decoding bins for one direction."""
+def decoding_chance_summary(direction):
+    """Per-patient label-permutation chance null for global decoding R2 (hippocampus only).
+
+    See analysis/run_hippocampus_decoding_chance_null.py — fully shuffles the
+    source/target row correspondence and refits the decoder, N=200 times per
+    patient, to get an empirical chance level for decoding itself (separate
+    from the curvature-modulates-decoding question tested by the delta/pstar
+    annotation below).
+    """
+    path = os.path.join(RDIR, "hippocampus_decoding_chance_null.csv")
+    if not os.path.exists(path):
+        return None
+    null_df = pd.read_csv(path)
+    sub = null_df[null_df["direction"] == direction]
+    if sub.empty:
+        return None
+    n_sig = int((sub["p_value"] < 0.05).sum())
+    n_total = len(sub)
+    p_max_among_sig = sub.loc[sub["p_value"] < 0.05, "p_value"].max()
+    return n_sig, n_total, p_max_among_sig
+
+
+def draw_cross_single(ax, lag, direction, panel_label, square=False):
+    """Cross-space decoding bins for one direction.
+
+    square=True plots mean(target_corr**2) per quintile (per-word "pattern
+    variance explained") instead of mean(target_corr). This is a different
+    statistic from global_r2 (the dataset-level variance-weighted R2 used in
+    the chance-null test), so the chance-null annotation is only shown for
+    the r panel, not the r**2 panel.
+    """
     pt = pd.read_csv(os.path.join(RDIR,
         f"curvature_alignment_llama-3.1-8b_hippocampus-ACC_all-patients"
         f"_pca_llmpc64_shufflecv_ridge_both_lagplus{lag}_matchedpcs_pointwise.csv"))
     xs = np.arange(1, N_BINS + 1)
 
-    pat = per_patient_curvature_bins(pt, direction)
+    pat = per_patient_curvature_bins(pt, direction, square=square)
     if pat is not None:
         mu = pat.mean(0)
         se = scipy_sem(pat, axis=0)
@@ -267,11 +303,21 @@ def draw_cross_single(ax, lag, direction, panel_label):
                 transform=ax.transAxes, ha="right", va="top",
                 fontsize=9, color=color)
 
+    if not square:
+        chance = decoding_chance_summary(direction)
+        if chance is not None:
+            n_sig, n_total, p_max_among_sig = chance
+            ax.text(0.03, 0.03,
+                    f"Decoding > chance (label-shuffle null):\n"
+                    f"{n_sig}/{n_total} patients, p$\\leq${p_max_among_sig:.3f}",
+                    transform=ax.transAxes, ha="left", va="bottom",
+                    fontsize=7.5, color="#444444")
+
     ax.axhline(0, color=C_ZERO, lw=1.0, ls="--", alpha=0.6, zorder=2)
     ax.set_xticks(xs)
     ax.set_xticklabels(XTICK_LABELS)
     ax.set_xlabel("Curvature quintile")
-    ax.set_ylabel("Cross-space decoding $r$")
+    ax.set_ylabel("Cross-space decoding $r^2$" if square else "Cross-space decoding $r$")
     dir_str = "LLM → neural" if direction == "LLM_to_neural" else "Neural → LLM"
     lag_str = "lag 0" if lag == 0 else "lag +1"
     ax.set_title(f"{dir_str}  ·  {lag_str}", loc="left", pad=6)
@@ -319,8 +365,8 @@ def main():
                                              bottom=0.09, top=0.88))
 
     draw_cross_single(axes[0, 0], lag=1, direction="LLM_to_neural",  panel_label="A")
-    draw_residualized_single(axes[0, 1], direction="LLM_to_neural",  panel_label="B")
-    draw_cross_single(axes[1, 0], lag=1, direction="neural_to_LLM",  panel_label="C")
+    draw_cross_single(axes[0, 1], lag=1, direction="neural_to_LLM",  panel_label="B")
+    draw_residualized_single(axes[1, 0], direction="LLM_to_neural",  panel_label="C")
     draw_residualized_single(axes[1, 1], direction="neural_to_LLM",  panel_label="D")
 
 
