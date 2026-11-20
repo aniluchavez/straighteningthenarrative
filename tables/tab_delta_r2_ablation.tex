@@ -1,0 +1,96 @@
+% Required packages in preamble:
+%   \usepackage{booktabs}
+%   \usepackage{threeparttable}
+%   \usepackage{xcolor}
+%   \usepackage{colortbl}
+
+\definecolor{discourseGray}{gray}{0.93}
+
+\begin{table}[t]
+  \centering
+  \caption{%
+    Unique variance in geometric trajectory explained by surprisal ($\Delta R^2$),
+    as nuisance controls are added incrementally.
+    %
+    $\Delta R^2$ is the incremental $R^2$ when surprisal is added to the controls-only
+    model (OLS per patient; all variables z-scored within patient).
+    %
+    Values are mean\,$\pm$\,SEM across $N{=}10$ patients
+    (llama-3.1-8b, hippocampus for Panel B).
+    %
+    Significance is the median within-patient incremental F-test $p$-value.
+  }
+  \label{tab:delta_r2_ablation}
+  \small
+  \setlength{\tabcolsep}{7pt}
+  \renewcommand{\arraystretch}{1.25}
+  \begin{threeparttable}
+    \begin{tabular}{@{} l r@{}l r@{}l @{}}
+      \toprule
+        &
+        \multicolumn{2}{c}{Curvature ($\kappa$)} &
+        \multicolumn{2}{c}{Displacement ($d$)} \\
+      \cmidrule(lr){2-3}
+      \cmidrule(l){4-5}
+        Controls &
+        \multicolumn{2}{c}{$\Delta R^2$ (mean $\pm$ SEM)} &
+        \multicolumn{2}{c}{$\Delta R^2$ (mean $\pm$ SEM)} \\
+      \midrule
+      \multicolumn{5}{@{}l}{\textit{A \quad Semantic trajectory}} \\[1pt]
+      %
+      \quad Raw (no controls)
+        & $0.0260 \pm 0.0030$ & $^{***}$
+        & $0.0018 \pm 0.0008$ & \\
+      %
+      \rowcolor{discourseGray}
+      \quad $+$ sentence position
+        & $0.0305 \pm 0.0028$ & $^{***}$
+        & $0.0019 \pm 0.0009$ & \\
+      %
+      \rowcolor{discourseGray}
+      \quad $+$ turn \& speaker
+        & $0.0289 \pm 0.0023$ & $^{***}$
+        & $0.0020 \pm 0.0009$ & \\
+      %
+      \rowcolor{discourseGray}
+      \quad $+$ length \& frequency
+        & $0.0040 \pm 0.0014$ & $^{**}$
+        & $0.0020 \pm 0.0011$ & \\
+      %
+      \midrule
+      \multicolumn{5}{@{}l}{\textit{B \quad Neural trajectory (hippocampus)}} \\[1pt]
+      %
+      \quad Raw (no controls)
+        & $0.0369 \pm 0.0034$ & $^{***}$
+        & $0.0493 \pm 0.0064$ & $^{***}$ \\
+      %
+      \rowcolor{discourseGray}
+      \quad $+$ sentence position
+        & $0.0248 \pm 0.0025$ & $^{***}$
+        & $0.0337 \pm 0.0036$ & $^{***}$ \\
+      %
+      \rowcolor{discourseGray}
+      \quad $+$ turn \& speaker
+        & $0.0221 \pm 0.0025$ & $^{***}$
+        & $0.0346 \pm 0.0037$ & $^{***}$ \\
+      %
+      \rowcolor{discourseGray}
+      \quad $+$ length \& frequency
+        & $0.0074 \pm 0.0015$ & $^{***}$
+        & $0.0087 \pm 0.0018$ & $^{***}$ \\
+      %
+      \bottomrule
+    \end{tabular}
+    \begin{tablenotes}[flushleft]
+      \footnotesize
+      \item \textit{Note.}
+        Shaded rows include at least one discourse/lexical covariate.
+        Controls are cumulative:
+        \textit{sentence position} (word index within sentence, sentence-start flag);
+        \textit{turn \& speaker} (turn boundary, speaker identity, distance to turn);
+        \textit{length \& frequency} (word length, log unigram frequency).
+        No significance marker = $p > .05$.
+        $^{***}p < .001$;\; $^{**}p < .01$.
+    \end{tablenotes}
+  \end{threeparttable}
+\end{table}

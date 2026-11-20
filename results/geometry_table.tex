@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\tiny
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+Model & $r_\mathrm{sem}$ & $r_\mathrm{geo}$ & $r_\mathrm{nrm}$ & $\bar\kappa_\mathrm{sec}$ & $r_\mathrm{neu}$ & Curv (°) & Disp & Torsion (°) & Straight & $R^2_\mathrm{base}$ & $R^2_\mathrm{full}$ \\
+\midrule
+GPT-2 & \textbf{-0.047\tiny{±0.009*}} & \textbf{-0.170\tiny{±0.011*}} & +0.201\tiny{±0.011*} & +0.021\tiny{±0.000} & +0.064\tiny{±0.011*} & 114.378\tiny{±0.119} & 75.291\tiny{±0.606} & 59.717\tiny{±0.107} & 0.001\tiny{±0.000} & 0.0105 & 0.1793 \\
+GPT-2 medium & \textbf{-0.045\tiny{±0.008*}} & \textbf{-0.188\tiny{±0.010*}} & +0.226\tiny{±0.008*} & +0.025\tiny{±0.000} & +0.064\tiny{±0.011*} & 112.938\tiny{±0.096} & 113.583\tiny{±1.114} & 61.129\tiny{±0.081} & 0.001\tiny{±0.000} & 0.0103 & 0.1795 \\
+BERT-base & \textbf{-0.042\tiny{±0.009*}} & \textbf{-0.139\tiny{±0.010*}} & +0.169\tiny{±0.009*} & +0.014\tiny{±0.000} & +0.064\tiny{±0.011*} & 115.895\tiny{±0.075} & 20.701\tiny{±0.031} & 58.688\tiny{±0.106} & 0.001\tiny{±0.000} & 0.0105 & 0.1798 \\
+RoBERTa-base & \textbf{+0.029\tiny{±0.011*}} & \textbf{-0.161\tiny{±0.005*}} & +0.188\tiny{±0.004*} & +0.020\tiny{±0.000} & +0.064\tiny{±0.011*} & 113.782\tiny{±0.117} & 14.922\tiny{±0.042} & 60.703\tiny{±0.116} & 0.001\tiny{±0.000} & 0.0125 & 0.1840 \\
+OPT-350M & \textbf{+0.045\tiny{±0.011*}} & \textbf{-0.164\tiny{±0.012*}} & +0.212\tiny{±0.011*} & +0.024\tiny{±0.000} & +0.064\tiny{±0.011*} & 113.446\tiny{±0.093} & 31.510\tiny{±0.063} & 60.960\tiny{±0.083} & 0.001\tiny{±0.000} & 0.0145 & 0.1827 \\
+LLaMA-2 7B & \textbf{+0.089\tiny{±0.018*}} & \textbf{-0.138\tiny{±0.022*}} & +0.181\tiny{±0.027*} & +0.031\tiny{±0.000} & +0.064\tiny{±0.011*} & 112.019\tiny{±0.065} & 11.075\tiny{±0.381} & 62.350\tiny{±0.060} & 0.001\tiny{±0.000} & 0.0219 & 0.1904 \\
+LLaMA-3.1 8B & \textbf{+0.077\tiny{±0.007*}} & \textbf{-0.137\tiny{±0.011*}} & +0.200\tiny{±0.009*} & +0.027\tiny{±0.000} & +0.064\tiny{±0.011*} & 113.200\tiny{±0.052} & 4.257\tiny{±0.033} & 61.147\tiny{±0.063} & 0.001\tiny{±0.000} & 0.0185 & 0.1914 \\
+Gemma-2 9B & \textbf{-0.034\tiny{±0.006*}} & \textbf{-0.163\tiny{±0.008*}} & +0.219\tiny{±0.007*} & +0.037\tiny{±0.000} & +0.064\tiny{±0.011*} & 110.792\tiny{±0.110} & 95.035\tiny{±0.797} & 63.035\tiny{±0.150} & 0.001\tiny{±0.000} & 0.0095 & 0.1814 \\
+Mistral-7B & \textbf{+0.071\tiny{±0.007*}} & \textbf{-0.141\tiny{±0.021*}} & +0.184\tiny{±0.022*} & +0.036\tiny{±0.000} & +0.064\tiny{±0.011*} & 111.044\tiny{±0.083} & 1.922\tiny{±0.140} & 63.282\tiny{±0.084} & 0.005\tiny{±0.005} & 0.0170 & 0.1870 \\
+\bottomrule
+\end{tabular}
+\caption{Geometry metrics at the LOO-neural layer (hippocampus, mean $\pm$ SEM across patients). $r_\mathrm{sem}$: total curvature--surprisal correlation. $r_\mathrm{geo}$: geodesic (on-manifold) curvature--surprisal. $r_\mathrm{nrm}$: normal (off-manifold) curvature--surprisal. $\bar\kappa_\mathrm{sec}$: mean sectional curvature slope (negative = sphere-like). $r_\mathrm{neu}$: neural curvature--surprisal. Straight: end-to-end / arc length. $R^2_\mathrm{base}$: model with sent\_pos + log\_freq. $R^2_\mathrm{full}$: + is\_speaker + word\_length + dist\_to\_turn. * $p < 0.05$ (one-sample $t$-test vs 0).}
+\label{tab:geometry}
+\end{table}

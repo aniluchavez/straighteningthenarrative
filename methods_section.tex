@@ -1,0 +1,119 @@
+ ths% methods_section.tex
+% Requires: amsmath, amssymb
+
+\section*{Methods}
+
+\subsection*{Participants, recordings, and neural preprocessing}
+
+Ten adults (7M/3F; age 22--54) with medically refractory epilepsy participated
+during clinical intracranial monitoring at Baylor St.\ Luke's Hospital EMU
+\citep{Xiao2024A,Xiao2024B}.
+Single-unit activity was recorded from sEEG Behnke--Fried microwires on a
+512-channel Blackrock Neuroport system (30~kHz), spike-sorted with Wave\_clus
+\citep{Chaure2018}, and manually curated (quality 4--5 retained; $N=10$
+hippocampus, $N=9$ ACC).
+Patients held unprompted conversations (14.7--70.1~min; mean 20.2~min);
+audio was transcribed with WhisperX \citep{Bain2023}, diarised with Pyannote
+\citep{Bredin2021}, and manually corrected in Praat for precise word onsets.
+For each word $w_t$, spikes were summed over a 500~ms window aligned to
+acoustic onset ($-200$~ms for speaker words; 0~ms for listener words),
+$z$-scored, and PCA-reduced (90\% variance), giving neural trajectory
+$\mathbf{Y}\!\in\!\mathbb{R}^{T\times k}$.
+
+\subsection*{LLM embeddings}
+
+Word-level hidden-state embeddings were extracted from nine pretrained
+autoregressive and masked LLMs, spanning three architecture families: GPT-2
+and GPT-2-medium \citep{Radford2019}, OPT-350m \citep{Zhang2022}, BERT-base
+\citep{Devlin2019} and RoBERTa-base \citep{Liu2019}, LLaMA-2-7B
+\citep{Touvron2023}, LLaMA-3.1-8B \citep{Grattafiori2024} (primary model),
+Gemma-2-9B \citep{GemmaTeam2024}, and Mistral-7B \citep{Jiang2023}. All models
+were loaded from their public Hugging Face Hub checkpoints via the
+\texttt{transformers} library \citep{Wolf2020} (LLaMA-2/3.1, Gemma-2, and
+Mistral-7B in bfloat16 precision on a single GPU; smaller models in float32).
+
+For each transcript, every word was encoded with a leading whitespace and the
+model's native byte-pair or WordPiece tokenizer, and per-word token spans were
+recorded to allow later pooling. Because transcripts routinely exceeded a
+model's maximum context length (1024 tokens for GPT-2, up to 8192 for
+LLaMA-3.1/Gemma-2/Mistral), the token stream was processed in overlapping
+windows (stride = 50\% of the model's usable context) with a single forward
+pass per window (\texttt{output\_hidden\_states=True}); for encoder models
+(BERT, RoBERTa) \texttt{[CLS]}/\texttt{[SEP]} tokens were added per window and
+their hidden states discarded afterward. Hidden states from overlapping
+windows were averaged token-wise, and subword-token hidden states belonging to
+the same word were mean-pooled to yield one embedding per word at every
+transformer layer, giving semantic trajectory
+$\mathbf{E}^{(\ell)}\!\in\!\mathbb{R}^{T\times D}$ at layer $\ell$. Embeddings
+were cached per patient/model to disk (as \texttt{[layer, word, dim]} arrays)
+so all downstream analyses reused a single extraction pass.
+Words within two positions of a sentence boundary or speaker-turn change were
+excluded.
+
+\subsection*{Geometric measures}
+
+Let $\mathbf{X}\in\mathbb{R}^{T\times D}$ be either trajectory, with
+displacement vectors $\boldsymbol{\delta}_t = \mathbf{x}_{t+1}-\mathbf{x}_t$.
+
+\paragraph{Curvature.}
+The turning angle at interior word $t$ is
+\begin{equation}
+  \kappa_t = \arccos\!\left(
+    \frac{\boldsymbol{\delta}_{t-1}\cdot\boldsymbol{\delta}_t}
+         {\|\boldsymbol{\delta}_{t-1}\|\,\|\boldsymbol{\delta}_t\|}
+  \right), \quad t=2,\dots,T-1.
+  \label{eq:curv}
+\end{equation}
+
+\paragraph{Displacement.}
+$d_t = \|\boldsymbol{\delta}_t\|_2$, symmetrised as
+$\tilde{d}_t = \tfrac{1}{2}(d_{t-1}+d_t)$ to align with curvature support.
+
+\subsection*{Layer selection}
+
+For each patient $i$, the analysis layer was selected by leave-one-out
+cross-validation maximising alignment with neural curvature across held-out
+patients:
+\begin{equation}
+  \ell^*_i = \underset{\ell}{\arg\max}\;
+    \frac{1}{N-1}\sum_{j\neq i}
+    \left|r\!\left(\kappa^{(\ell)}_j,\,\kappa^{\mathrm{neu}}_j\right)\right|.
+  \label{eq:loo}
+\end{equation}
+
+\subsection*{Regression analyses}
+
+All models used OLS with $z$-scored predictors.
+To test whether semantic geometry predicts neural geometry, we regressed
+neural curvature (or neural displacement) onto the corresponding LLM measure
+while controlling for sentence position, turn boundaries, speaker role, word
+length, and log lexical frequency:
+\begin{equation}
+  \kappa^{\mathrm{neu}}_t \;=\;
+    \beta_0 + \beta_1\kappa^{(\ell^*)}_t + \beta_2\tilde{d}^{(\ell^*)}_t
+    + \boldsymbol{\gamma}^{\!\top}\mathbf{c}_t + \varepsilon_t,
+  \label{eq:reg_neural}
+\end{equation}
+where $\mathbf{c}_t$ is the vector of nuisance covariates.
+
+To quantify the unique contribution of word surprisal
+$h_t = -\log_2 p(w_t\mid w_{<t})$ (extracted from LLaMA-3.1-8B),
+we used sequential $\Delta R^2$: surprisal was added last to a model already
+containing $\kappa^{(\ell^*)}_t$, $\tilde{d}^{(\ell^*)}_t$, and
+$\mathbf{c}_t$, and the increment in explained variance was tested against a
+temporal-shuffle null (50 permutations).
+
+Event-triggered curvature was computed in $\pm5$-word windows around
+high-surprisal ($>\!$75th percentile) and low-surprisal ($<\!$25th percentile)
+words.
+
+\subsection*{Cross-space decoding}
+
+To assess whether the geometric relationship is bidirectional, we trained
+linear ridge-regression decoders to predict neural curvature from LLM curvature
+(LLM$\to$Neural) and vice versa (Neural$\to$LLM), each using chunk-level
+$z$-scored curvature vectors at the selected layer.
+Decoders were evaluated by leave-one-patient-out cross-validation; mean
+Pearson $r$ across patients was compared to a shuffle null.
+The cross-lag condition used LLM curvature at $t$ to predict neural curvature
+at $t+1$ (and vice versa), providing a temporal-asymmetry check.

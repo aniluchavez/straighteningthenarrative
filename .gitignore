@@ -1,0 +1,18 @@
+# Whitelist: ignore everything, track only code + paper source.
+# Data, caches, results, figures, transcripts/surprisal (PHI) stay local.
+*
+!*/
+
+!*.py
+!*.sbatch
+!*.sh
+!*.tex
+!*.bib
+!*.md
+!.gitignore
+
+# Never track, even if matched above
+__pycache__/
+**/EmbedCache/**
+**/tmp/**
+._*

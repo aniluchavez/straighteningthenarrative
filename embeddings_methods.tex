@@ -1,0 +1,25 @@
+% embeddings_methods.tex
+% Requires: amsmath, amssymb
+
+\subsection*{LLM embeddings}
+
+Word-level hidden-state embeddings were extracted from two autoregressive
+language models: GPT-2 \citep{Radford2019} and LLaMA-3.1-8B
+\citep{Grattafiori2024}, our primary model. Both were loaded from their
+public Hugging Face Hub checkpoints via the \texttt{transformers} library
+\citep{Wolf2020} (LLaMA-3.1-8B in bfloat16 precision on a single GPU; GPT-2
+in float32).
+
+For each transcript, every word was encoded with a leading whitespace and the
+model's native byte-pair tokenizer, and per-word token spans were recorded to
+allow later pooling. Because transcripts routinely exceeded a model's maximum
+context length (1024 tokens for GPT-2; 8192 for LLaMA-3.1-8B), the token
+stream was processed in overlapping windows (stride = 50\% of the model's
+usable context) with a single forward pass per window
+(\texttt{output\_hidden\_states=True}). Hidden states from overlapping
+windows were averaged token-wise, and subword-token hidden states belonging
+to the same word were mean-pooled to yield one embedding per word at every
+transformer layer, giving semantic trajectory
+$\mathbf{E}^{(\ell)}\!\in\!\mathbb{R}^{T\times D}$ at layer $\ell$. Embeddings
+were cached per patient/model to disk (as \texttt{[layer, word, dim]}
+arrays) so all downstream analyses reused a single extraction pass.

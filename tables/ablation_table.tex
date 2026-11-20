@@ -1,0 +1,47 @@
+\begin{table}[t]
+\centering
+\caption{%
+  Standardised OLS $\hat\beta$ (mean\,$\pm$\,SEM, $N{=}10$ patients) for
+  curvature ($\kappa$) and displacement ($d$) predicting surprisal under
+  progressive covariate control. $p_{\kappa{-}d}$: paired $t$-test across patients.
+}
+\label{tab:curvature_ablation}
+\footnotesize
+\begin{tabular}{lccc}
+\toprule
+\multicolumn{4}{l}{\textit{Panel A — Semantic trajectory}} \\
+\midrule
+Control set & $\hat\beta_\kappa$ & $\hat\beta_d$ & $p_{\kappa{-}d}$ \\
+\midrule
+Raw (no controls)
+  & $+0.158\pm0.010^{***}$ & $+0.035\pm0.008^{**}$ & $<$0.001$^{***}$ \\
+$+$ sentence position
+  & $+0.176\pm0.008^{***}$ & $+0.036\pm0.009^{**}$ & $<$0.001$^{***}$ \\
+$+$ turn \& speaker
+  & $+0.174\pm0.007^{***}$ & $+0.036\pm0.010^{**}$ & $<$0.001$^{***}$ \\
+$+$ length \& frequency
+  & $+0.062\pm0.015^{**}$  & $+0.041\pm0.012^{**}$ & 0.318\phantom{$^{**}$} \\
+\midrule
+\multicolumn{4}{l}{\textit{Panel B — Neural trajectory (hippocampus)}} \\
+\midrule
+Control set & $\hat\beta_\kappa$ & $\hat\beta_d$ & $p_{\kappa{-}d}$ \\
+\midrule
+Raw (no controls)
+  & $+0.190\pm0.009^{***}$ & $+0.218\pm0.014^{***}$ & 0.039$^{*}$ \\
+$+$ sentence position
+  & $+0.158\pm0.008^{***}$ & $+0.184\pm0.011^{***}$ & 0.036$^{*}$ \\
+$+$ turn \& speaker
+  & $+0.151\pm0.008^{***}$ & $+0.188\pm0.011^{***}$ & 0.004$^{**}$ \\
+$+$ length \& frequency
+  & $+0.098\pm0.010^{***}$ & $+0.106\pm0.012^{***}$ & 0.421\phantom{$^{**}$} \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+\footnotesize\raggedright
+Controls cumulative. Cross-space $r$:
+$r_{\kappa_\mathrm{sem},\kappa_\mathrm{neu}} = +0.090\pm0.006^{***}$;
+$r_{d_\mathrm{sem},d_\mathrm{neu}} = +0.018\pm0.005^{**}$
+(difference $+0.072\pm0.009$, $p{<}0.001$).
+$^{***}p{<}0.001$, $^{**}p{<}0.01$, $^{*}p{<}0.05$.
+\end{table}
