@@ -10,6 +10,7 @@
 !*.bib
 !*.md
 !.gitignore
+!requirements.txt
 
 # Never track, even if matched above
 __pycache__/
