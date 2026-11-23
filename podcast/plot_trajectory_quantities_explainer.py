@@ -14,6 +14,7 @@ Rows 2-3 (real data, one patient, N words):
   left : path drawn in the first 2 PCs (centered, unscaled)
   right: over word index -> PC1-3 coordinates, position p_t = |x_t - centroid|,
          magnitude m_t = |x_t|, step lengths + symmetrised d_t, curvature c_t.
+  argv[4] = "pc8": all quantities in 8 mean-subtracted PCs; position = |y_t| (distance from centroid).
          p, m, d, c computed in the FULL space, as in
          compute_curv_disp_pos_sqrt_full_gpt2xl_layer29.py.
 No words shown.
@@ -139,9 +140,13 @@ def load(pid):
     return sem, neu, f"{pid}, {neu.shape[1]} neurons"
 
 
-def real_row(fig, gs_row, X_full, sl, label, D, mag_note):
-    Xc = X_full - X_full.mean(0)
-    Y = PCA(n_components=3, svd_solver="randomized", random_state=0).fit_transform(Xc)[sl]
+def real_row(fig, gs_row, X_full, sl, label, D, mag_note, pc8=False, raw=None, Yshow=None, raw_note="", logpos=None):
+    sp = "8 PCs" if pc8 else f"full {D}-D"
+    if pc8:                                                 # X_full = 8 centered PCs; Yshow = 20
+        Y = Yshow[sl]
+    else:
+        Xc = X_full - X_full.mean(0)
+        Y = PCA(n_components=8, svd_solver="randomized", random_state=0).fit_transform(Xc)[sl]
     Xs = X_full[sl]
     L, c = curv_disp(Xs)
     dsym = 0.5 * (L[:-1] + L[1:])                           # analysed displacement at word t
@@ -156,41 +161,71 @@ def real_row(fig, gs_row, X_full, sl, label, D, mag_note):
     for i in range(len(Y)):
         axP.annotate(str(i + 1), Y[i, :2], xytext=(4, 4), textcoords="offset points", fontsize=7, color=INK2)
     axP.set_xlabel("PC1", fontsize=8, color=INK2); axP.set_ylabel("PC2", fontsize=8, color=INK2)
-    axP.set_title(f"{label}\npath in 2 PCs (display only; drawn angles ≠ full-space angles)",
+    axP.set_title(f"{label}\npath in PC1–PC2 (display only)",
                   loc="left", fontsize=9, color=INK)
 
     axX = fig.add_subplot(gs_row[0, 1:]); style(axX)
-    for j in range(3):
-        axX.plot(t, Y[:, j], "-o", ms=3, lw=1.3, color=PCS[j], label=f"PC{j+1}")
+    nshow = Y.shape[1]
+    ramp = matplotlib.colors.LinearSegmentedColormap.from_list("pcs", ["#0d366b", "#2a78d6", "#b7d3f6"])
+    for j in range(nshow):
+        axX.plot(t, Y[:, j], "-", lw=1.1, color=ramp(j / max(nshow - 1, 1)),
+                 label=f"PC{j+1}" if j in (0, nshow - 1) else None)
+    avg = Y.mean(1) if pc8 else Xs.mean(1)
+    axX.plot(t, avg, "-o", ms=4, lw=2.4, color=INK, zorder=5,
+             label=f"mean of the {nshow} PC coords" if pc8 else f"mean of all {D} coords")
     axX.set_ylabel("coords", fontsize=8, color=INK2)
-    axX.legend(fontsize=7, frameon=False, ncol=3, loc="upper right")
-    axX.set_title(f"x$_t$ = {D} numbers per word (3 PCs shown)", loc="left", fontsize=9, color=INK)
+    axX.legend(fontsize=6.5, frameon=False, ncol=5, loc="lower right", bbox_to_anchor=(1, 1.0))
+    axX.set_title(f"x$_t$ in mean-subtracted PCs: first {nshow} shown (analysis uses PC1–8)" if pc8 else
+                  f"x$_t$ = {D} numbers per word ({nshow} PCs shown)", loc="left", fontsize=9, color=INK)
 
-    axS = fig.add_subplot(gs_row[1, 1:], sharex=axX); style(axS)
-    axS.plot(t, pos, "-o", ms=3, lw=1.3, color=POS)
-    axS.set_ylabel("‖x$_t$ − x̄‖", fontsize=8, color=INK2)
-    axS.set_title(f"position p$_t$ = distance from session centroid (full {D}-D)", loc="left", fontsize=9, color=INK)
+    r = 1
+    if pc8:
+        Rs = raw[sl]; Dr = raw.shape[1]
+        axR = fig.add_subplot(gs_row[r, 1:], sharex=axX); style(axR); r += 1
+        axR.plot(t, Rs, "-", lw=0.4, color=INK2, alpha=0.15)
+        axR.plot(t, Rs.mean(1), "-o", ms=4, lw=2.4, color=INK, zorder=5, label=f"mean of all {Dr} coords")
+        axR.set_ylabel("raw coords", fontsize=8, color=INK2)
+        axR.legend(fontsize=6.5, frameon=False, loc="lower right", bbox_to_anchor=(1, 1.0))
+        axR.set_title(f"x$_t$ raw, no PCA: all {Dr} coords (gray)", loc="left", fontsize=9, color=INK)
+    if not pc8:
+        axS = fig.add_subplot(gs_row[r, 1:], sharex=axX); style(axS); r += 1
+        axS.plot(t, pos, "-o", ms=3, lw=1.3, color=POS)
+        axS.set_ylabel("‖x$_t$ − x̄‖", fontsize=8, color=INK2)
+        axS.set_title(f"distance from session centroid ({sp})", loc="left", fontsize=9, color=INK)
 
-    axM = fig.add_subplot(gs_row[2, 1:], sharex=axX); style(axM)
-    axM.plot(t, mag, "-o", ms=3, lw=1.3, color=INK2)
-    axM.set_ylabel("‖x$_t$‖", fontsize=8, color=INK2)
-    axM.set_title(f"magnitude m$_t$ = distance from origin (full {D}-D){mag_note}", loc="left", fontsize=9, color=INK)
+    axM = fig.add_subplot(gs_row[r, 1:], sharex=axX); style(axM); r += 1
+    axM.plot(t, mag, "-o", ms=3, lw=1.3, color=POS)
+    axM.set_ylabel("‖y$_t$‖" if pc8 else "‖x$_t$‖", fontsize=8, color=INK2)
+    axM.set_title("position p$_t$ = ‖y$_t$‖ = distance from session centroid (8 mean-subtracted PCs)" if pc8 else
+                  f"position p$_t$ = magnitude = distance from origin ({sp}){mag_note}", loc="left", fontsize=9, color=INK)
+    if logpos is not None:                                  # (session-wide position series, r with sqrt version)
+        lp, rlog, logdesc, basedesc = logpos
+        axL = fig.add_subplot(gs_row[r, 1:], sharex=axX); style(axL); r += 1
+        axL.plot(t, lp[sl], "-o", ms=3, lw=1.3, color=POS, ls="--")
+        axL.set_ylabel("‖y$_t$‖ log", fontsize=8, color=INK2)
+        axL.set_title(f"position with {logdesc} (8 mean-subtracted PCs); "
+                      f"r with {basedesc} position over all words = {rlog:.3f}", loc="left", fontsize=9, color=INK)
+    if pc8:
+        axMr = fig.add_subplot(gs_row[r, 1:], sharex=axX); style(axMr); r += 1
+        axMr.plot(t, np.linalg.norm(Rs, axis=1), "-o", ms=3, lw=1.3, color=INK2)
+        axMr.set_ylabel("‖x$_t$‖ raw", fontsize=8, color=INK2)
+        axMr.set_title(f"not position: overall activity = distance from 0, raw, no PCA (full {Dr}-D){raw_note}", loc="left", fontsize=9, color=INK)
 
-    axD = fig.add_subplot(gs_row[3, 1:], sharex=axX); style(axD)
+    axD = fig.add_subplot(gs_row[r, 1:], sharex=axX); style(axD)
     axD.bar(t[:-1] + 0.5, L, width=0.45, color=DISP, alpha=0.45, label="step ‖x$_{t+1}$ − x$_t$‖")
     axD.plot(t[1:-1], dsym, "o", ms=5, color=DISP, label="d$_t$ = mean of the two steps at word t")
     axD.set_ylabel("displacement", fontsize=8, color=INK2)
     axD.legend(fontsize=7, frameon=False, ncol=2, loc="lower right", bbox_to_anchor=(1, 1.0))
-    axD.set_title(f"displacement (full {D}-D)", loc="left", fontsize=9, color=INK)
+    axD.set_title(f"displacement ({sp})", loc="left", fontsize=9, color=INK)
 
-    axC = fig.add_subplot(gs_row[4, 1:], sharex=axX); style(axC)
+    axC = fig.add_subplot(gs_row[r + 1, 1:], sharex=axX); style(axC)
     axC.plot(t[1:-1], c, "-o", ms=4, lw=1.3, color=CURV)
     axC.axhline(120, ls=":", color=INK2, lw=1)
     axC.text(t[-1] + 0.3, 120, "random\n≈120°", fontsize=7, color=INK2, va="center")
     axC.set_ylim(0, 180); axC.set_yticks([0, 60, 120, 180])
     axC.set_ylabel("c$_t$ (deg)", fontsize=8, color=INK2)
     axC.set_xlabel("word index t", fontsize=8, color=INK2)
-    axC.set_title(f"curvature c$_t$ = turn angle at word t (full {D}-D); none at first/last word",
+    axC.set_title(f"curvature c$_t$ = turn angle at word t ({sp}); none at first/last word",
                   loc="left", fontsize=9, color=INK)
     axC.set_xticks(t)
 
@@ -200,21 +235,35 @@ def main():
     pid = a[0] if a else "YEY"          # or "pseudopop" (word index = YEY-aligned common words)
     start = int(a[1]) if len(a) > 1 else 200
     N = int(a[2]) if len(a) > 2 else 12
+    pc8 = len(a) > 3 and a[3] == "pc8"
     sem, neu, neu_desc = load(pid)
+    sem_raw, neu_raw, sem20, neu20 = sem, neu, None, None
+    if pc8:   # mean-subtracted, unscaled PCA fit on the whole session (|y_t| = distance from centroid)
+        sem20 = PCA(n_components=20, svd_solver="full").fit_transform(sem)
+        neu20 = PCA(n_components=20, svd_solver="full").fit_transform(neu)
+        sem, neu = sem20[:, :8], neu20[:, :8]
+        counts = (neu_raw / 2.0) ** 2                       # back from 2*sqrt(count)
+        logpos = np.linalg.norm(PCA(n_components=8, svd_solver="full").fit_transform(np.log1p(counts)), axis=1)
+        rlog = float(np.corrcoef(logpos, np.linalg.norm(neu, axis=1))[0, 1])
+        slog = np.sign(sem_raw) * np.log1p(np.abs(sem_raw))   # signed log: activations can be negative
+        slogpos = np.linalg.norm(PCA(n_components=8, svd_solver="full").fit_transform(slog), axis=1)
+        rslog = float(np.corrcoef(slogpos, np.linalg.norm(sem, axis=1))[0, 1])
+    nrow = 6 if pc8 else 5
     sl = slice(start, start + N)
 
-    fig = plt.figure(figsize=(15, 22), facecolor=BG)
-    outer = fig.add_gridspec(3, 1, height_ratios=[0.75, 1.6, 1.6], hspace=0.2, top=0.95, bottom=0.03)
+    fig = plt.figure(figsize=(15, 29 if pc8 else 22), facecolor=BG)
+    outer = fig.add_gridspec(3, 1, height_ratios=[0.75, 1.6 + 0.27 * pc8, 1.6 + 0.27 * pc8], hspace=0.2, top=0.95, bottom=0.03)
     top = outer[0].subgridspec(1, 3, wspace=0.15)
     toy_row(fig.add_subplot(top[0]), fig.add_subplot(top[1]), fig.add_subplot(top[2]))
-    real_row(fig, outer[1].subgridspec(5, 3, hspace=0.75, wspace=0.3), sem, sl,
-             f"Semantic: GPT-2 XL L{LAYER}, raw activations", sem.shape[1], "")
-    real_row(fig, outer[2].subgridspec(5, 3, hspace=0.75, wspace=0.3), neu, sl,
-             f"Neural: hippocampus {neu_desc}, 2√count", neu.shape[1], " = 2√(total count)")
-    fig.suptitle(f"Position, displacement, curvature — toy example (top), {pid} words {start}–{start+N-1} (bottom)",
+    real_row(fig, outer[1].subgridspec(nrow + pc8, 3, hspace=0.75, wspace=0.3), sem, sl,
+             f"Semantic: GPT-2 XL L{LAYER}, raw activations" + (" (1600-D → 8 PCs)" if pc8 else ""), 1600, "", pc8, sem_raw, sem20, "",
+             (slogpos, rslog, "signed log sign(x)·log(1+|x|) instead of raw", "raw") if pc8 else None)
+    real_row(fig, outer[2].subgridspec(nrow + pc8, 3, hspace=0.75, wspace=0.3), neu, sl,
+             f"Neural: hippocampus {neu_desc}, 2√count" + (" (→ 8 PCs)" if pc8 else ""), neu_raw.shape[1], "" if pc8 else " = 2√(total count)", pc8, neu_raw, neu20, " = 2√(total count)", (logpos, rlog, "log(1+count) instead of 2√count", "2√count") if pc8 else None)
+    fig.suptitle(f"Position, displacement, curvature — toy example (top), {pid} words {start}–{start+N-1} (bottom)" + (" — 8 mean-subtracted PCs" if pc8 else " — full space"),
                  fontsize=12, color=INK, x=0.01, ha="left", y=0.99)
     os.makedirs(FIG_DIR, exist_ok=True)
-    base = os.path.join(FIG_DIR, f"trajectory_quantities_explainer_{pid}_w{start}_{N}")
+    base = os.path.join(FIG_DIR, f"trajectory_quantities_explainer_{pid}_w{start}_{N}" + ("_pc8" if pc8 else ""))
     fig.savefig(base + ".png", dpi=130, bbox_inches="tight"); fig.savefig(base + ".pdf", bbox_inches="tight")
     print("saved", base + ".png")
 
